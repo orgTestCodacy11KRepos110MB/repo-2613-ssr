@@ -1,11 +1,10 @@
 import * as React from 'react'
+import 'react-router'
 import { useContext, useEffect, useState } from 'react'
 import { withRouter, RouteComponentProps } from 'react-router-dom'
-import { DynamicFC, StaticFC, Action, IWindow, ReactESMFetch, ReactFetch } from 'ssr-types-react'
+import { DynamicFC, StaticFC, Action, ReactESMFetch, ReactFetch } from 'ssr-types-react'
 // @ts-expect-error
 import { STORE_CONTEXT } from '_build/create-context'
-
-declare const window: IWindow
 
 let hasRender = false
 
@@ -32,7 +31,6 @@ const fetchAndDispatch = async ({ fetch, layoutFetch }: fetchType, dispatch: Rea
     payload: combineData
   })
 }
-
 function wrapComponent (WrappedComponent: DynamicFC|StaticFC) {
   return withRouter(props => {
     const [ready, setReady] = useState(WrappedComponent.name !== 'dynamicComponent')

@@ -1,0 +1,33 @@
+{
+  "name": "ssr-common-utils",
+  "version": "6.2.23",
+  "description": "utils for serverless ssr",
+  "main": "./cjs/index.js",
+  "module": "./esm/index.js",
+  "sideEffects": false,
+  "scripts": {
+    "build": "concurrently \"tsc -p ./tsconfig.cjs.json \" \" tsc -p ./tsconfig.esm.json\"",
+    "build:publish": "concurrently \"tsc -p ./tsconfig.cjs.json --sourcemap false\" \" tsc -p ./tsconfig.esm.json --sourcemap false\"",
+    "watch": "concurrently \"tsc -w -p ./tsconfig.cjs.json \" \"tsc -w -p ./tsconfig.esm.json \""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zhangyuang/ssr.git"
+  },
+  "keywords": [
+    "cli",
+    "serverless",
+    "ssr",
+    "react",
+    "vue"
+  ],
+  "author": "zhangyuang",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/zhangyuang/ssr/issues"
+  },
+  "homepage": "https://github.com/zhangyuang/ssr#readme",
+  "dependencies": {
+    "path-to-regexp": "^6.2.0"
+  }
+}

@@ -34,7 +34,9 @@
 
 #### Vue3 + TSX(可选)
 
-在 Vue3 场景下我们默认在底层已加载 [@vue/babel-plugin-jsx](https://github.com/vuejs/jsx-next#installation) 插件，开发者可根据个人喜好决定使用 template 的方式抑或是 tsx 的方式进行开发。例如想使用 tsx 的话，只需要将 .vue 文件改为 .tsx 文件即可。如果你打算大量使用 TypeScript 来开发应用，我们更加推荐使用 tsx 文件的形式而不是传统 Vue 文件。如下 vue 组件
+在 Vue3 场景下我们默认在底层已加载 [@vue/babel-plugin-jsx](https://github.com/vuejs/jsx-next#installation) 插件，开发者可根据个人喜好决定使用 template 的方式抑或是 tsx 的方式进行开发。例如想使用 tsx 的话，只需要将 .vue 文件改为 .tsx 文件即可。
+
+`注：Vue3 + volar(VSCode插件) + Pinia 的 ts 支持已经十分优秀，不推荐用 Vue3 + TSX 的组合。由于 babel 插件自身的问题，在该场景下 Webpack HMR 热更新能力存在一定问题，若一定要使用建议配合 Vite 一起使用`
 
 ```html
 <template>
@@ -110,4 +112,4 @@ export default {
 
 - `sass` ，参考[文档](./features$faq#)可通过 `chainBaseConfig` 的方式来修改默认的 `Webpack` 配置支持。但我们不推荐这么做。 `90%` 框架的 `issue` 类型都是由于使用者修改了默认的配置引起的。
 - `koa` ，开发一个 `ssr` 框架的 `koa` 插件只需要两分钟，但我们仍然不推荐这么做。如果你一定需要选择其他的服务端 Node.js 框架，请选择相对成熟的
-- `redux`， 默认不支持 `redux` 作为数据管理，同样在未来也并不打算支持。`redux-saga`, `dva` 同理，未来也并不打算支持。 `useContext` 已足够优秀，若一定要选择其他的数据管理方案，在未来我们或许会考虑框架层提供 `Mobx` 或 `redux-toolkit` 来作为相对复杂的数据管理方案
+- `redux`， 默认不支持 `redux` 作为数据管理，同样在未来也并不打算支持。`redux-saga`, `dva` 同理，未来也并不打算支持。 `useContext` 已足够优秀，若一定要选择其他的数据管理方案，在未来我们或许会考虑框架层提供 `MobX` 或 `redux-toolkit` 来作为相对复杂的数据管理方案

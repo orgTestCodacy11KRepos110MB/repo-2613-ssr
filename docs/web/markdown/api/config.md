@@ -6,7 +6,7 @@
 
 配置文件可通过 `config.ts|js` 文件定义以及调用 `core.render` 方法时实时传入。会将两者配置进行合并
 
-注：`config.ts|js` 文件将会在编译后统一放置于 `build/config.js` 路径，所以当你在配置文件中使用相对路径引用外部文件时请使用 `require cwd` 类似的语法。目前不支持引入外部 `ts` 文件
+注：`config.ts|js` 文件将会在编译后统一放置于 `build/config.js` 路径，所以当你在配置文件中使用相对路径引用外部文件时请使用 `require cwd` 类似的语法。目前不支持引入外部 `ts` 文件。由于文档更新不一定及时，建议以最新的 `ssr-types` 类型为主要参考
 
 
 ```js
@@ -75,7 +75,7 @@ const stream = await render<Readable>(this.ctx, userConfig)
 ## fePort
 
 - 类型: `number`
-- 默认: `8888`
+- 默认: `8999`
 - 生效场景: `Webpack` 
 
 本地开发时 `webpack-dev-server` 托管前端静态资源的端口，`Node.js Server` 会自动 `proxy` 静态资源, 无特殊需求不需要修改
@@ -102,7 +102,7 @@ const stream = await render<Readable>(this.ctx, userConfig)
 
 ## extraJsOrder
 
-- 类型: `string[]`
+- 类型: `((ctx: ISSRContext) => string[]) | string[]`
 - 默认: `[]`
 - 生效场景: `Webpack/Vite` 
 
@@ -115,13 +115,49 @@ module.exports = {
 }
 ```
 
+高级用法，按需加载切割出来的 `vendor`
+
+```js
+import type { UserConfig, ISSRMidwayKoaContext } from 'ssr-types'
+
+const userConfig: UserConfig = {
+  chainClientConfig: chain => {
+    chain.optimization.splitChunks({
+      ...chain.optimization.get('splitChunks'),
+      cacheGroups: {
+        'vendor-swiper': {
+          test: (module: any) => {
+            return module.resource &&
+              /\.js$/.test(module.resource) &&
+              module.resource.match('swiper')
+          },
+          name: 'vendor-swiper',
+          priority: 3
+        },
+        ...chain.optimization.get('splitChunks').cacheGroups
+      }
+    })
+  },
+  extraJsOrder: (ctx) => {
+    const ctxWithType = ctx as ISSRMidwayKoaContext
+    // 只有访问首页的时候加载 vendor-swiper
+    if (ctxWithType.path === '/') {
+      return ['vendor-swiper.js']
+    }
+  }
+}
+
+export { userConfig }
+
+```
+
 ## extraCssOrder
 
-- 类型: `string[]`
+- 类型: `((ctx: ISSRContext) => string[]) | string[]`
 - 默认: `[]`
 - 生效场景: `Webpack/Vite` 
 
-需要额外初始化加载的 `css chunk name`，通常配合 `splitChunks` 配置一起使用
+需要额外初始化加载的 `css chunk name`，通常配合 `splitChunks` 配置一起使用。用法与 `extraJsOrder` 一样
 
 ```js
 module.exports = {
@@ -171,7 +207,7 @@ export {
 
 ```js
 module.exports = {
-  chainBaseConfig: (chain) => {
+  chainBaseConfig: (chain, isServer) => {
     chain.module
       .rule('markdown')
       .test(/\.md$/)
@@ -511,7 +547,7 @@ module.exports = {
 }
 ```
 
-## disableClientRender
+<!-- ## disableClientRender
 
 禁用默认的客户端渲染逻辑调用。通常与[微前端](./features$在微前端场景下使用(Beta))结合使用
 
@@ -528,7 +564,7 @@ module.exports = {
 module.exports = {
   disableClientRender: true
 }
-```
+``` -->
 
 ## routerOptimize
 
@@ -556,6 +592,30 @@ module.exports {
 
 ```
 
+## hashRouter
+
+- 类型: `boolean`
+
+- 默认: `undefined`
+
+- version: `>=6.2.2`
+
+- 生效场景: `Vue3` + `Webpack/Vite`
+
+
+仅在 `Vue3 ssr build --html` 场景下生效，通于降级 `html` 渲染的场景不存在服务器环境，此时需要让客户端使用 `hashRouter`。
+
+```js
+import type { UserConfig } from 'ssr-types'
+
+const userConfig: UserConfig = {
+  hashRouter: true
+}
+
+export { userConfig }
+
+```
+
 ## viteConfig
 
 在 `vite` 模式下的 `config` 配置
@@ -563,28 +623,53 @@ module.exports {
 - 类型
 
 ```js
-export type viteConfig? = () => {
-  // 这里以函数返回值的形式获取配置，参考注意事项，只在本地开发和构建阶段使用到的依赖在函数内部引入，防止生产环境引入导致拖慢速度
-  common?: {
-    // 双端通用配置
-    extraPlugin?: any[] // 需要使用的额外插件
+type viteConfig?: () => {
+    common?: {
+      // 双端通用配置
+      extraPlugin?: PluginOption | PluginOption[]
+      server?: ServerOptions // 对应 vite.server 配置
+    }
+    client?: {
+      // 只在客户端生效的配置
+      defaultPluginOptions?: any // 为默认装载的插件定义 options, vue3 场景是 @vitejs/plugin-vue, react 场景是 @vitejs/plugin-react
+      extraPlugin?: PluginOption | PluginOption[]
+    }
+    server?: {
+      // 只在服务端生效的配置
+      defaultPluginOptions?: any
+      extraPlugin?: PluginOption | PluginOption[]
+    }
   }
-  client?: {
-    // 只在客户端生效的配置
-    defaultPluginOptions?: any // 默认使用的 vite 前端框架插件的配置，vue3 场景为 @vitejs/plugin-vue， react场景为 @vitejs/plugin-react 查看对应文档获取类型 https://vitejs.dev/plugins/
-    extraPlugin?: any[] // 需要使用的额外插件
-  }
-  server?: {
-    // 只在服务端生效的配置
-    defaultPluginOptions?: any
-    extraPlugin?: any[]
-  }
-}
 ```
 
-- 生效场景: `Webpack` 
-
 为了防止用户的配置覆盖框架默认的必要配置导致启动构建失败，所以这里我们暂时只会开放部分配置让开发者使用，若无法满足你的需求，可以提 `issue` 来反馈，我们会根据实际情况新增配置项
+
+## htmlTemplate
+
+- 类型: `string`
+- 默认: `
+  \<!DOCTYPE html>
+  \<html lang="en">
+  \<head>
+    \<meta charset="UTF-8">
+    \<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    \<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    \<title>Document\</title>
+    cssInject
+    jsHeaderManifest
+  \</head>
+  \<body>
+    \<div id="app">\</div>
+    hashRouterScript
+    jsFooterManifest
+    jsManifest
+  \</body>
+  \</html>
+  `
+
+- 生效场景: `Webpack/Vite` 
+
+作为 `ssr build --spa` 的构建模版，开发者可自行设置 `title, meta` 等标签信息，其余模版插入内容请不要修改保持不变。
 ## 注意事项
 
 1. 由于 `config.js` 文件在 Node.js 环境也会被加载，如果直接在顶部 `require` 模块可能会导致模块`体积过大`，降低应用启动速度，我们建议在必要的函数当中再 `require` 需要用到的模块。

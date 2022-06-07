@@ -14,7 +14,7 @@
 
 以及基于 `observer` 思想的 `mobx`, `vuex` 等等
 
-也有些开发者认为 `React+Mobx`，就是类型友好的干净版 `Vue`, 虽然上述方案没有绝对的优劣之分。但从开发者体验的角度来看基于 `observer` 思想实现的方案在编写舒适度上是要更优的。
+也有些开发者认为 `React+MobX`，就是类型友好的干净版 `Vue`, 虽然上述方案没有绝对的优劣之分。但从开发者体验的角度来看基于 `observer` 思想实现的方案在编写舒适度上是要更优的。
 
 由于数据管理没有唯一答案，所以在 `ssr` 框架中我们`可能`会在框架层面提供多种方案让用户进行选择。但我们始终建议使用框架默认支持的方案，不要自行引入外部方案。我们也会不断的完善这一块的内容。
 
@@ -88,24 +88,31 @@ export default {
 
 此功能需要依赖版本 `>5.5.43`
 
-在 `provide/inject` 的方案中，我们为了不丢失响应性需要使用 `.value` 的形式来取值具体的数据，并且我们需要为不同页面的 `fetch` 返回数据添加不同的 `namespace` 来防止属性冲突。这些都是非常有必要的事情。如果开发者认为当前应用不需要任何数据管理方案，我们提供了最简单的 `props 直出数据` 的方案来使得组件能够拿到 `fetch` 返回的数据。此方案兼容 `Vue2/Vue3`。同样支持在 `layout/index.vue`, `layout/App.vue` 中获取 `fetchData`
+在 `provide/inject` 的方案中，我们为了不丢失响应性需要使用 `.value` 的形式来取值具体的数据，并且我们需要为不同页面的 `fetch` 返回数据添加不同的 `namespace` 来防止属性冲突。这些都是非常有必要的事情。如果开发者认为当前应用不需要任何数据管理方案，我们提供了最简单的 `props 直出数据` 的方案来使得组件能够拿到 `fetch` 返回的数据。
+
+此方案兼容 `Vue2/Vue3`。同样支持在 `layout/index.vue`, `layout/App.vue` 中获取 `fetchData`
+
+`注: 不再建议使用 props.fetchData, 在 csr 场景下会有问题，建议统一替换为 reactiveFetchData, 通过 reactiveFetchData.value 获取数据`
 
 ```html
 // layout/App.vue
 <template>
-  <router-view :fetchData="fetchData"/>
+  <router-view :reactiveFetchData="reactiveFetchData" />
 </template>
 
-<script>
-export default {
-  // 在服务端渲染阶段框架会将 fetch 组合后的数据直接传递给 App.vue 的 props。这里需要手动将 props 传递给具体的组件
-  // key 名固定为 fetchData 不可修改
-  props: ['fetchData']
-}
+<script lang="ts" setup>
+import { defineProps, App } from 'vue'
+
+const props = defineProps<{
+  ssrApp: App,
+  reactiveFetchData: any,
+  asyncData: any
+}>()
 </script>
+
 ```
 
-具体组件中接收数据, 通过 `props.fetchData` 在具体组件中接收对应的 `fetch` 返回的数据。同样在前端路由切换时我们也会自动将将要跳转到的路由页面对应的 `fetch` 数据注入到对应的组件 `props` 中。
+具体组件中接收数据, 通过 `props.reactiveFetchData` 在具体组件中接收对应的 `fetch` 返回的数据。同样在前端路由切换时我们也会自动将将要跳转到的路由页面对应的 `fetch` 数据注入到对应的组件 `props` 中。
 
 ```html
 <template>
@@ -129,7 +136,7 @@ import Rectangle from '@/components/rectangle/index.vue'
 import Search from '@/components/search/index.vue'
 
 export default defineComponent({
-  props: ['fetchData'] // key 名固定为 fetchData 不可修改，前端路由跳转时将自动注入，服务端渲染时通过 App.vue 注入
+  props: ['reactiveFetchData'] // key 名固定为 reactiveFetchData 不可修改，前端路由跳转时将自动注入，服务端渲染时通过 App.vue 注入
   components: {
     Slider,
     Rectangle,
@@ -150,7 +157,7 @@ export default defineComponent({
 
 ### Vue 场景总结
 
-在 `fetch.ts` 中 `return value` 后，通过 `props.asyncData` 拿到 `layout fetch` 与 `page fetch` 合并后的结果。通过 `props.fetchData` 拿到当前页面对应的 `fetch` 的结果。也就是在 `layout/index.vue` 拿到的是 `layout fetch`，在页面组件拿到的是 `page fetch`。
+在 `fetch.ts` 中 `return value` 后，通过 `props.asyncData` 拿到 `layout fetch` 与 `page fetch` 合并后的结果。通过 `props.reactiveFetchData` 拿到当前页面对应的 `fetch` 的结果。也就是在 `layout/index.vue` 拿到的是 `layout fetch`，在页面组件拿到的是 `page fetch`。
 
 ## React 场景
 
@@ -158,7 +165,7 @@ export default defineComponent({
 
 `注：在最新版本中请使用 import { STORE_CONTEXT } from '_build/create-context' 来代替 window.STORE_CONTEXT 的取值`
 
-### 使用 userContext + useReducer
+### 使用 useContext + useReducer
 
 随着 `hooks` 的流行以及 `useContext` 这个 API 的推出, 越来越多的开发者希望用它来代替 `Dva`, `Redux` 这些方案来实现数据管理，因为之前的数据管理方案写起来实在是太累了。  
 

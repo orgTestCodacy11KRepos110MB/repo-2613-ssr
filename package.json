@@ -1,35 +1,26 @@
 {
+  "name": "ssr",
   "private": true,
-  "workspaces": {
-    "packages": [
-      "packages/*"
-    ],
-    "nohoist": [
-      "**/vue",
-      "**/vuex",
-      "**/vue-router",
-      "**/core-js",
-      "**/vue-loader"
-    ]
-  },
   "scripts": {
-    "bootstrap": "yarn && yarn run build:only && yarn run link",
+    "preinstall": "npx only-allow pnpm",
+    "pnpm:devPreinstall": "npx esno scripts/preinstall.ts",
+    "postinstall": "esno scripts/postinstall.ts",
+    "bootstrap": "pnpm i && pnpm build",
     "clean": "node scripts/scripts.js --clean",
-    "dev": "lerna run watch --stream --parallel",
-    "build": "lerna run build --stream --parallel",
-    "build:only": "lerna run build:only --stream --parallel",
-    "lint": "cross-env NODE_OPTIONS=--max_old_space_size=4096 eslint packages example e2e --ext .js,.ts --cache",
+    "dev": "esno scripts/dev.ts",
+    "build": "esno scripts/turbo.ts --cmd build",
+    "build:publish": "pnpm --filter ./packages build:publish",
+    "lint": "cross-env NODE_OPTIONS=--max_old_space_size=4096 eslint packages example e2e --ext .js,.ts --cache --cache-strategy content",
     "lint:fix": "cross-env NODE_OPTIONS=--max_old_space_size=4096 eslint packages example e2e --ext .js,.ts --cache --fix",
-    "link": "node scripts/scripts.js --link",
-    "unlink": "node scripts/scripts.js --unlink",
     "sync": "node scripts/scripts.js --sync",
-    "publish": "lerna version --conventional-commits",
     "e2e": "cypress run --browser chrome",
+    "release": "esno scripts/release.ts",
+    "ci-publish": "esno scripts/publishCI.ts",
     "example:midway:vue": "cd example/midway-vue-ssr && npm start",
     "example:midway:react": "cd example/midway-react-ssr && npm start",
     "example:midway:vue3": "cd example/midway-vue3-ssr && npm start",
-    "example:midway:vue3:vite": "cd example/midway-vue3-ssr && npx ssr start --vite",
-    "example:midway:react:vite": "cd example/midway-react-ssr && npx ssr start --vite",
+    "example:midway:vue3:vite": "cd example/midway-vue3-ssr && npm run start:vite",
+    "example:midway:react:vite": "cd example/midway-react-ssr && npm run start:vite",
     "example:nestjs:react:prod": "cd example/nestjs-react-ssr && npm run prod",
     "example:nestjs:vue3:prod": "cd example/nestjs-vue3-ssr && npm run prod",
     "example:nestjs:vue:prod": "cd example/nestjs-vue-ssr && npm run prod",
@@ -38,7 +29,8 @@
     "example:nestjs:react": "cd example/nestjs-react-ssr && npm start",
     "example:nestjs:vue": "cd example/nestjs-vue-ssr && npm start",
     "example:nestjs:vue3": "cd example/nestjs-vue3-ssr && npm start",
-    "example:midway:react:dynamic:router": "cd example/react-dynamic-router-test && npm start"
+    "example:midway:react:dynamic:router": "cd example/react-dynamic-router-test && npm start",
+    "example:nestjs:vue3:pinia": "cd example/nestjs-vue3-ssr-pinia && npm start"
   },
   "repository": {
     "type": "git",
@@ -51,24 +43,32 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "yarn lint",
+      "pre-commit": "pnpm lint",
       "commit-msg": "node scripts/verifyCommit.js"
     }
   },
   "homepage": "https://github.com/zhangyuang/ssr#readme",
   "devDependencies": {
-    "babel-eslint": "^10.0.2",
-    "chalk": "^4.1.1",
+    "@types/prompts": "^2.0.14",
+    "@types/semver": "^7.3.9",
+    "@types/shelljs": "^0.8.7",
     "concurrently": "^5.3.0",
-    "core-js": "^3.6.4",
+    "conventional-changelog-cli": "^2.2.2",
     "cross-env": "^7.0.3",
     "cypress": "^6.2.1",
+    "eslint": "^7.9.0",
     "eslint-config-standard-react-ts": "^1.0.3",
     "eslint-config-standard-vue-ts": "^1.0.0",
+    "esno": "^0.14.1",
+    "execa": "^5.1.1",
     "husky": "^4.3.0",
-    "lerna": "^3.20.2",
-    "rimraf": "^3.0.2",
+    "minimist": "^1.2.6",
+    "picocolors": "^1.0.0",
+    "prompts": "^2.4.2",
+    "semver": "^7.3.5",
+    "shelljs": "^0.8.3",
     "tsc-transpile-only": "^0.0.3",
+    "turbo": "^1.2.6",
     "typescript": "^4.0.0"
   }
 }

@@ -1,5 +1,6 @@
 import { Options, RuleSetCondition } from 'webpack'
 import * as Config from 'webpack-chain'
+import type { PluginOption, ServerOptions, UserConfig as ViteConfig } from 'vite'
 import type { RollupBabelInputPluginOptions } from '@rollup/plugin-babel'
 import { Argv } from './yargs'
 import { ISSRContext } from './ctx'
@@ -33,8 +34,8 @@ export interface IConfig {
   proxy?: any
   cssOrder: string[]
   jsOrder: string[]
-  extraJsOrder?: string[]
-  extraCssOrder?: string[]
+  extraJsOrder?: ((ctx: ISSRContext) => string[]) | string[] | undefined
+  extraCssOrder?: ((ctx: ISSRContext) => string[]) | string[] | undefined
   css?: () => {
     loaderOptions?: {
       cssOptions?: any
@@ -47,14 +48,15 @@ export interface IConfig {
       }
     }
   }
-  chainBaseConfig: (config: Config) => void
+  chainBaseConfig: (config: Config, isServer: boolean) => void
   chainServerConfig: (config: Config) => void
   chainClientConfig: (config: Config) => void
   webpackStatsOption: Options.Stats
   moduleFileExtensions: string[]
-  whiteList: RegExp[] | string[]
+  whiteList: Array<RegExp|string>
   cloudIDE?: boolean
-  prefix?: string
+  prefix: string
+  clientPrefix?: string
   mode: 'ssr' | 'csr'
   webpackDevServerConfig?: any
   stream: boolean
@@ -76,7 +78,6 @@ export interface IConfig {
   }
   parallelFetch?: boolean
   nestStartTips?: string
-  disableClientRender?: boolean
   manifestPath: string
   proxyKey: string[]
   vue3ServerEntry: string
@@ -90,17 +91,24 @@ export interface IConfig {
   supportOptinalChaining: boolean
   viteConfig?: () => {
     common?: {
-    // 双端通用插件
-      extraPlugin?: any[]
+      // 双端通用配置
+      extraPlugin?: PluginOption | PluginOption[]
+      server?: ServerOptions
     }
     client?: {
-      defaultPluginOptions?: any
-      extraPlugin?: any[]
+      defaultPluginOptions?: any // 为默认装载的插件定义 options, vue3 场景是 @vitejs/plugin-vue, react 场景是 @vitejs/plugin-react
+      extraPlugin?: PluginOption | PluginOption[]
+      otherConfig?: ViteConfig
     }
     server?: {
       defaultPluginOptions?: any
-      extraPlugin?: any[]
+      extraPlugin?: PluginOption | PluginOption[]
+      otherConfig?: ViteConfig
     }
+  }
+  hmr?: {
+    host?: string
+    port?: number
   }
   define?: {
     base?: Record<string, string>
@@ -108,6 +116,8 @@ export interface IConfig {
     server?: Record<string, string>
   }
   babelOptions?: RollupBabelInputPluginOptions
+  hashRouter?: boolean
+  htmlTemplate?: string
 }
 
 export interface proxyOptions {

@@ -13,12 +13,12 @@
     "stripInternal": true,
     "pretty": true,
     "declaration": false,
-    "strict": true,
+    "strict": false,
     "noEmit": true,
     "baseUrl": "./",
     "strictNullChecks": true,
     "esModuleInterop": true,
-    "jsx": "react",
+    "jsx": "preserve",
     "paths": {
       "@/*": ["./*"],
       "~/*": ["../*"]

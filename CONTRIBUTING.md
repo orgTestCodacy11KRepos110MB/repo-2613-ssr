@@ -2,29 +2,20 @@
 
 The markdown file introduce how to contribute for ssr-psec
 
-## 本地如何link调试模块
+## bootstrap
 
 package.json 中已经封装好本地的调试命令
 
 ```bash
-$ yarn run bootstrap # 项目初始化
-$ yarn run link --vue3|vue2|react # 由于同时存在 vue2,vue3 不同版本的 vue 实例，这里需要根据具体需要调试的 example 的种类 link
-$ yarn run dev # 开启监听模式
+$ npm i -g pnpm@6
+$ pnpm bootstrap
 ```
 
-执行以上命令后 `example/midway-react-ssr` 中的依赖已经成功 link 到本地的包。若在 `example/midway-react-ssr` 中执行 `yarn start` 提示 `permisson denied` 请手动通过 chmod 提升文件权限。
-`chmod 777 ./node_modules/.bin/ssr`
-
-执行完上述操作后去到需要调试的 example 例如 `midway-vue3-ssr`
+## publish 
 
 ```bash
-$ cd example/midway-vue3-ssr
-$ yarn && npm start
-$ npx ssr start --vite --test # 开发人员本地测试 vite 使用，正式使用直接 ssr start --vite 即可
+$ pnpm release
 ```
-
-Please read the [document](https://classic.yarnpkg.com/en/docs/workspaces/) about yarn workspace
-
 ## 代码贡献规范
 
 有任何疑问，欢迎提交 [issue](https://github.com/zhangyuang/ssr/issues)，
@@ -77,15 +68,12 @@ Please read the [document](https://classic.yarnpkg.com/en/docs/workspaces/) abou
 # 先创建开发分支开发，分支名应该有含义，避免使用 update、tmp 之类的
 $ git checkout -b branch-name
 
-# 开发完成后跑下测试是否通过，必要时需要新增或修改测试用例
-$ npm test
-
-# 测试通过后，提交代码，message 见下面的规范
-
 $ git add . # git add -u 删除文件
 $ git commit -m "fix(role): role.use must xxx"
 $ git push origin branch-name
 ```
+
+推送后关注 `github actions` 执行结果
 
 由于谁也无法保证过了多久之后还记得多少，为了后期回溯历史的方便，请在提交 MR 时确保提供了以下信息。
 
@@ -170,7 +158,7 @@ BREAKING CHANGE:
 - 名词、动词、代词、形容词、副词等首字母大写，介词、冠词、连词、感叹词和助词首字母小写，*标题第一个单词、最后一个单词无论词性首字母应该大写*。
 - 专有名词（如直接引用某个变量，或者某个插件名称等），必须使用反单引号（键盘上 Esc 正下方）进行引用，并保持原来大小写。
 - 超过5个字母的介词首字母应该大写，否则一律小写。
-- 如果是重要提示性标题，或者是专有名称标题（例如 Http 请求方法：GET，POST，PUT，DELETE），可以全部字母都用大写（慎重考虑）。
+- 如果是重要提示性标题，或者是专有名称标题（例如 HTTP 请求方法：GET，POST，PUT，DELETE），可以全部字母都用大写（慎重考虑）。
 - 如果标题属于“动宾”性质的短语（如“配置管理”），尽量翻译成“宾+动词名词”的形式（Configuration Management），或者是“动名词+宾语”的形式（Managing Configuration）。
 - 如果标题被当做一个完整的英语句子，请按照英语句子的语法格式大小写（如：常见问题 FAQ 中每一个标题都是一个英语句子）。
 

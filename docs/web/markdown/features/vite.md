@@ -73,7 +73,7 @@ export { userConfig }
 
 启动时间 = 更少的初始化模块加载 + Midway 启动时间
 
-![](http://doc.ssr-fc.com/images/start-vite2.gif)
+![](http://doc.ssr-fc.com/images/start-vite3.gif)
 
 ### 应用结构
 
@@ -227,8 +227,6 @@ app.useStaticAssets(join(getCwd(), './build/client'))
 
 ```json
 "scripts": {
-  "prod:vite": "ssr build --vite && egg-scripts start --port=3000 --title=midway-server-my_midway_project --framework=@midwayjs/web",
-  "stop": "egg-scripts stop --title=midway-server-my_midway_project",
   "start:vite": "ssr start --vite",
   "build:vite": "ssr build --vite"
 }

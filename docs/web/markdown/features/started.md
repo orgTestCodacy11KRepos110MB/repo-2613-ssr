@@ -15,12 +15,13 @@
 
 注意: 在 `Midway.js` `Nest.js` 场景下我们都已实现了一键部署到 `Serverless` 平台的能力。但底层实现略有差异。更加详细的介绍可以阅读[部署](./features$deploy) 章节。如需要大量使用 `Serverless` 平台提供的能力，我们建议创建 `Midway.js` 类型的应用
 
-- [midway-react-ssr](https://github.com/zhangyuang/ssr/tree/dev/example/midway-react-ssr)
-- [midway-vue-ssr](https://github.com/zhangyuang/ssr/tree/dev/example/midway-vue-ssr)
-- [midway-vue3-ssr](https://github.com/zhangyuang/ssr/tree/dev/example/midway-vue3-ssr)
 - [nestjs-react-ssr](https://github.com/zhangyuang/ssr/tree/dev/example/nestjs-react-ssr)
 - [nestjs-vue-ssr](https://github.com/zhangyuang/ssr/tree/dev/example/nestjs-vue-ssr)
 - [nestjs-vue3-ssr](https://github.com/zhangyuang/ssr/tree/dev/example/nestjs-vue3-ssr)
+- [nestjs-vue3-ssr-pinia](https://github.com/zhangyuang/nestjs-vue3-ssr-pinia)
+- [midway-react-ssr](https://github.com/zhangyuang/ssr/tree/dev/example/midway-react-ssr)
+- [midway-vue-ssr](https://github.com/zhangyuang/ssr/tree/dev/example/midway-vue-ssr)
+- [midway-vue3-ssr](https://github.com/zhangyuang/ssr/tree/dev/example/midway-vue3-ssr)
 
 开发者可根据实际技术栈需要创建不同类型的应用快速开始
 
@@ -54,7 +55,7 @@ export class Index {
   ctx: Context
 
   @Get('/') // http://localhost:3000
-  @Get('/page') // http://localhost:3000/page，需创建需要渲染的 web/page/user/render.vue|tsx 文件 Midway 框架支持多装饰器，Nestjs 可采用中间件的形式来为多个 path 附加相同逻辑
+  @Get('/page') // http://localhost:3000/page，需创建需要渲染的 web/page/user/render.vue|tsx 文件 Midway 框架支持多装饰器，NestJS 可采用中间件的形式来为多个 path 附加相同逻辑
   async handler (): Promise<void> {
     try {
         // 只需要传入 ctx 作为参数即可
@@ -107,7 +108,6 @@ export class Index {
 
 ```shell
 $ npm run deploy # 应用发布, 等价于 npx ssr deploy
-$ npm run deploy:tencent # 发布到腾讯云 等价于 npx ssr deploy --tencent
 ```
 
 ### 传统 Node.js 应用形式部署

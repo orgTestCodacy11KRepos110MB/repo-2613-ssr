@@ -68,8 +68,12 @@ const getBaseConfig = (chain: WebpackChain, isServer: boolean) => {
   const { moduleFileExtensions, useHash, isDev, chainBaseConfig, locale, corejsOptions, ssrVueLoaderOptions, csrVueLoaderOptions, babelExtraModule, alias, define } = config
 
   let vueLoaderOptions = {
-    babelParserPlugins: ['jsx', 'classProperties', 'decorators-legacy']
+    babelParserPlugins: ['jsx', 'classProperties', 'decorators-legacy'],
+    compilerOptions: {
+      isCustomElement: (tag: string) => tag.includes('micro')
+    }
   }
+
   if (isServer && ssrVueLoaderOptions) {
     vueLoaderOptions = {
       vueLoaderOptions,
@@ -95,7 +99,7 @@ const getBaseConfig = (chain: WebpackChain, isServer: boolean) => {
     .merge(['.mjs', '.js', '.jsx', '.vue', '.json', '.wasm'])
     .end()
   chain.module
-    .noParse(/^(vue|vue-router|vuex|vuex-router-sync)$/)
+    .noParse(/^(vue|vue-router|vuex)$/)
 
   chain.mode(mode)
 
@@ -125,9 +129,15 @@ const getBaseConfig = (chain: WebpackChain, isServer: boolean) => {
     .use('vue-loader')
     .loader(loadModule('vue-loader')).options(vueLoaderOptions)
     .end()
+
   chain
     .plugin('vue-loader')
     .use(require(loadModule('vue-loader')).VueLoaderPlugin)
+    .end()
+  chain.module
+    .rule('mjs')
+    .test(/\.mjs/)
+    .type('javascript/auto')
     .end()
 
   locale?.enable && chain.module
@@ -213,7 +223,7 @@ const getBaseConfig = (chain: WebpackChain, isServer: boolean) => {
     ...define?.base
   }])
 
-  chainBaseConfig(chain)
+  chainBaseConfig(chain, isServer)
   return config
 }
 

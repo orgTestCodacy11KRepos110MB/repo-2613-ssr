@@ -1,12 +1,13 @@
 import { h, createSSRApp, createApp, reactive, renderSlot } from 'vue'
 import { Store } from 'vuex'
 import { RouteLocationNormalizedLoaded } from 'vue-router'
-import { findRoute } from 'ssr-client-utils'
+import { findRoute, isMicro } from 'ssr-client-utils'
+import { createPinia } from 'pinia'
 import { createRouter, createStore } from './create'
 import { ESMFetch, IFeRouteItem, RoutesType } from './interface'
 import { Routes } from './create-router'
 
-const { FeRoutes, App, layoutFetch, PrefixRouterBase } = Routes as RoutesType
+const { FeRoutes, App, layoutFetch } = Routes as RoutesType
 declare const module: any
 
 let hasRender = false
@@ -24,30 +25,40 @@ async function getAsyncCombineData (fetch: ESMFetch | undefined, store: Store<an
 const clientRender = async () => {
   const store = createStore()
   const router = createRouter({
-    base: window.prefix ?? PrefixRouterBase
+    base: isMicro() ? window.clientPrefix : window.prefix,
+    hashRouter: window.hashRouter
   })
+  const pinia = createPinia()
   const create = window.__USE_SSR__ ? createSSRApp : createApp
 
   if (window.__INITIAL_DATA__) {
     store.replaceState(window.__INITIAL_DATA__)
   }
+  if (window.__INITIAL_PINIA_DATA__) {
+    pinia.state.value = window.__INITIAL_PINIA_DATA__
+  }
 
   const asyncData = reactive({
     value: window.__INITIAL_DATA__ ?? {}
   })
-  const fetchData = window.__INITIAL_DATA__ ?? {}
+  const reactiveFetchData = reactive({
+    value: window.__INITIAL_DATA__ ?? {}
+  })
+  const fetchData = window.__INITIAL_DATA__ ?? {} // will be remove at next major version
 
   const app = create({
     render () {
       return renderSlot(this.$slots, 'default', {}, () => [h(App, {
         asyncData,
-        fetchData
+        fetchData,
+        reactiveFetchData,
+        ssrApp: app
       })])
     }
   })
   app.use(store)
   app.use(router)
-
+  app.use(pinia)
   router.beforeResolve(async (to, from, next) => {
     if (hasRender || !window.__USE_SSR__) {
       // 找到要进入的组件并提前执行 fetch 函数
@@ -58,6 +69,7 @@ const clientRender = async () => {
           fetchData: combineAysncData
         })
       })
+      reactiveFetchData.value = combineAysncData
       asyncData.value = Object.assign(asyncData.value, combineAysncData)
     }
     hasRender = true
@@ -65,17 +77,13 @@ const clientRender = async () => {
   })
   await router.isReady()
 
-  app.mount('#app', !!window.__USE_SSR__) // 这里需要做判断 ssr/csr 来为 true/false
+  app.mount('#app', !!window.__USE_SSR__) // judge ssr/csr
   if (!window.__USE_VITE__) {
-    module?.hot?.accept?.() // webpack 场景下的 hmr
+    module?.hot?.accept?.() // webpack hmr for vue jsx
   }
 }
 
-if (!window.__disableClientRender__) {
-  // 如果服务端直出的时候带上该记号，则默认不进行客户端渲染，将处理逻辑交给上层
-  // 可用于微前端场景下自定义什么时候进行组件渲染的逻辑调用
-  clientRender()
-}
+clientRender()
 
 export {
   clientRender

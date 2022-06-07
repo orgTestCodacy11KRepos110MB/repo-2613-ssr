@@ -3,6 +3,62 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [6.2.7](https://github.com/zhangyuang/ssr/compare/v6.2.6...v6.2.7) (2022-04-07)
+
+**Note:** Version bump only for package ssr-hoc-react
+
+
+
+
+
+## [6.2.3](https://github.com/zhangyuang/ssr/compare/v6.2.1...v6.2.3) (2022-04-01)
+
+**Note:** Version bump only for package ssr-hoc-react
+
+
+
+
+
+## [6.2.2](https://github.com/zhangyuang/ssr/compare/v6.2.1...v6.2.2) (2022-04-01)
+
+**Note:** Version bump only for package ssr-hoc-react
+
+
+
+
+
+## [6.2.1](https://github.com/zhangyuang/ssr/compare/v6.2.0...v6.2.1) (2022-04-01)
+
+**Note:** Version bump only for package ssr-hoc-react
+
+
+
+
+
+# [6.2.0](https://github.com/zhangyuang/ssr/compare/v6.2.0-alpha.0...v6.2.0) (2022-03-31)
+
+**Note:** Version bump only for package ssr-hoc-react
+
+
+
+
+
+# [6.2.0-alpha.0](https://github.com/zhangyuang/ssr/compare/v6.1.78...v6.2.0-alpha.0) (2022-03-31)
+
+**Note:** Version bump only for package ssr-hoc-react
+
+
+
+
+
+## [6.1.79-alpha.0](https://github.com/zhangyuang/ssr/compare/v6.1.78...v6.1.79-alpha.0) (2022-03-31)
+
+**Note:** Version bump only for package ssr-hoc-react
+
+
+
+
+
 ## [6.1.76](https://github.com/zhangyuang/ssr/compare/v6.1.75...v6.1.76) (2022-03-24)
 
 **Note:** Version bump only for package ssr-hoc-react
