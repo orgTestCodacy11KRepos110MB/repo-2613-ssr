@@ -14,25 +14,28 @@ function render (ctx: ISSRContext, options?: UserConfig): Promise<string>
 function render<T> (ctx: ISSRContext, options?: UserConfig): Promise<T>
 
 async function render (ctx: ISSRContext, options?: UserConfig) {
-  const config = Object.assign({}, defaultConfig, options ?? {})
-  const { stream, isVite } = config
+  return await new Promise(async (resolve, reject) => {
+    const config = Object.assign({}, defaultConfig, options ?? {})
+    const { stream, isVite } = config
 
-  if (!ctx.response.type && typeof ctx.response.type !== 'function') {
-    ctx.response.type = 'text/html;charset=utf-8'
-  } else if (!(ctx as ExpressContext).response.hasHeader?.('content-type')) {
-    (ctx as ExpressContext).response.setHeader?.('Content-type', 'text/html;charset=utf-8')
-  }
+    if (!ctx.response.type && typeof ctx.response.type !== 'function') {
+      ctx.response.type = 'text/html;charset=utf-8'
+    } else if (!(ctx as ExpressContext).response.hasHeader?.('content-type')) {
+      (ctx as ExpressContext).response.setHeader?.('Content-type', 'text/html;charset=utf-8')
+    }
 
-  const serverRes = isVite ? await viteRender(ctx, config) : await commonRender(ctx, config)
-  if (stream) {
-    const stream = mergeStream2(new StringToStream('<!DOCTYPE html>'), renderToNodeStream(serverRes))
-    stream.on('error', (e: any) => {
-      console.log(e)
-    })
-    return stream
-  } else {
-    return `<!DOCTYPE html>${renderToString(serverRes)}`
-  }
+    const serverRes = isVite ? await viteRender(ctx, config) : await commonRender(ctx, config)
+    if (stream) {
+      const stream = mergeStream2(new StringToStream('<!DOCTYPE html>'), renderToNodeStream(serverRes))
+      stream.on('error', (e: any) => {
+        console.log('123123', e)
+        reject(new Error(e))
+      })
+      resolve(stream)
+    } else {
+      resolve(`<!DOCTYPE html>${renderToString(serverRes)}`)
+    }
+  })
 }
 let viteServer: ViteDevServer|boolean = false
 async function viteRender (ctx: ISSRContext, config: IConfig) {

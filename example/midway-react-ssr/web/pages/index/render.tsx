@@ -8,6 +8,7 @@ import { STORE_CONTEXT } from '_build/create-context'
 
 export default function Index (props: SProps) {
   const { state, dispatch } = useContext<IContext<IData>>(STORE_CONTEXT)
+  console.log(window)
   return (
     <div>
       <Search></Search>

@@ -27,19 +27,17 @@ export class Index {
     const { ctx } = this
     ctx.apiService = this.apiService
     ctx.apiDeatilservice = this.apiDeatilservice
-    const stream = await render(this.ctx, {
-      stream: true,
-      mode: 'ssr'
-    })
-    stream.on('error', async (err) => {
-      console.log('ssr error', err)
-      stream.destroy()
-      const newStream = await render<string>(ctx, {
-        stream: false,
-        mode: 'csr'
+    try {
+      const stream = await render(this.ctx, {
+        stream: true,
+        mode: 'ssr'
+      }).catch(err => {
+        console.log('xxxx', err)
       })
-      ctx.res.end(newStream)
-    })
-    ctx.body = stream
+      ctx.body = stream
+
+    } catch (error) {
+      console.log('xxxx', error)
+    }
   }
 }
