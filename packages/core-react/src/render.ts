@@ -1,5 +1,5 @@
 import { resolve } from 'path'
-import { Readable } from 'stream'
+import { Readable, PassThrough, Writable } from 'stream'
 import { renderToString, renderToNodeStream } from 'react-dom/server'
 import { loadConfig, getCwd, StringToStream, mergeStream2 } from 'ssr-server-utils'
 import { ISSRContext, UserConfig, ExpressContext, IConfig } from 'ssr-types'
@@ -14,28 +14,39 @@ function render (ctx: ISSRContext, options?: UserConfig): Promise<string>
 function render<T> (ctx: ISSRContext, options?: UserConfig): Promise<T>
 
 async function render (ctx: ISSRContext, options?: UserConfig) {
-  return await new Promise(async (resolve, reject) => {
-    const config = Object.assign({}, defaultConfig, options ?? {})
-    const { stream, isVite } = config
+  const config = Object.assign({}, defaultConfig, options ?? {})
+  const { stream, isVite } = config
 
-    if (!ctx.response.type && typeof ctx.response.type !== 'function') {
-      ctx.response.type = 'text/html;charset=utf-8'
-    } else if (!(ctx as ExpressContext).response.hasHeader?.('content-type')) {
-      (ctx as ExpressContext).response.setHeader?.('Content-type', 'text/html;charset=utf-8')
-    }
+  if (!ctx.response.type && typeof ctx.response.type !== 'function') {
+    ctx.response.type = 'text/html;charset=utf-8'
+  } else if (!(ctx as ExpressContext).response.hasHeader?.('content-type')) {
+    (ctx as ExpressContext).response.setHeader?.('Content-type', 'text/html;charset=utf-8')
+  }
+  const pass = new PassThrough()
+  const writable = new Writable()
 
-    const serverRes = isVite ? await viteRender(ctx, config) : await commonRender(ctx, config)
-    if (stream) {
-      const stream = mergeStream2(new StringToStream('<!DOCTYPE html>'), renderToNodeStream(serverRes))
-      stream.on('error', (e: any) => {
-        console.log('123123', e)
-        reject(new Error(e))
+  // pass.pipe(writable)
+  // pass.unpipe(writable)
+  // // readableFlowing is now false.
+
+  // pass.on('data', (chunk) => { console.log(chunk.toString()) })
+  // pass.write('ok') // Will not emit 'data'.
+  // pass.resume()
+  const serverRes = isVite ? await viteRender(ctx, config) : await commonRender(ctx, config)
+  if (stream) {
+    try {
+      const stream = renderToNodeStream(serverRes)
+      stream.on('error', (e: ErrorConstructor) => {
+        throw new Error('123')
       })
-      resolve(stream)
-    } else {
-      resolve(`<!DOCTYPE html>${renderToString(serverRes)}`)
+    } catch (error) {
+
     }
-  })
+
+    return stream
+  } else {
+    return `<!DOCTYPE html>${renderToString(serverRes)}`
+  }
 }
 let viteServer: ViteDevServer|boolean = false
 async function viteRender (ctx: ISSRContext, config: IConfig) {

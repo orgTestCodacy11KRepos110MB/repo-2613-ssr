@@ -25,10 +25,15 @@ async function render (ctx: ISSRContext, options?: UserConfig) {
 
   const serverRes = isVite ? await viteRender(ctx, config) : await commonRender(ctx, config)
   if (stream) {
-    const stream = mergeStream2(new StringToStream('<!DOCTYPE html>'), renderToStream(serverRes))
-    stream.on('error', (e: any) => {
-      console.log(e)
-    })
+
+    try {
+      const stream = mergeStream2(new StringToStream('<!DOCTYPE html>'), renderToStream(serverRes))
+      stream.on('error', (e: ErrorConstructor) => {
+        throw new Error('123')
+      })
+    } catch (error) {
+      console.log('xxx', error)
+    }
     return stream
   } else {
     return `<!DOCTYPE html>${await renderToString(serverRes)}`
