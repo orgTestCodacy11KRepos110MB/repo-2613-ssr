@@ -51,7 +51,28 @@ const chunkNamePlugin = function (): Plugin {
     }
   }
 }
-
+const getDependencies = (id: string): Record<string, boolean> => {
+  const pkgName = getPkgName(id)
+  const { dependencies, peerDependencies } = require(require.resolve(`${pkgName}/package.json`, {
+    paths: [require.resolve(pkgName, {
+      paths: [id]
+    })]
+  }))
+  const obj: Record<string, boolean> = {}
+  Array.from(new Set(Object.keys(dependencies ?? {}).concat(Object.keys(peerDependencies ?? {})))).forEach(item => {
+    obj[item] = true
+  })
+  return obj
+}
+const checkDependencies = (id: string, importerId: string) => {
+  return
+  if (!id.includes('node_modules')) return
+  const dependencies = getDependencies(id)
+  const pkgName = getPkgName(importerId)
+  if (!dependencies[pkgName] && getPkgName(id) !== pkgName) {
+    throw new Error(`${id} use ${importerId} but don't declare it in dependencies`)
+  }
+}
 const recordInfo = (id: string, chunkName: string, {
   defaultChunkName,
   parentId
@@ -64,16 +85,9 @@ const recordInfo = (id: string, chunkName: string, {
   if (id.includes('node_modules')) {
     dependenciesMap[sign].push('vendor')
     const pkgName = sign
-    const { dependencies } = (require(require.resolve(`${pkgName}/package.json`, {
-      paths: [require.resolve(pkgName, {
-        paths: [id]
-      })]
-    })))
+    const dependencies = getDependencies(id)
     Object.keys(dependencies ?? {}).forEach(d => {
-      if (!dependenciesMap[d]) {
-        dependenciesMap[d] = []
-      }
-      dependenciesMap[d] = dependenciesMap[d].concat(dependenciesMap[pkgName])
+      dependenciesMap[d] = (dependenciesMap[d] ?? []).concat(dependenciesMap[pkgName])
     })
   }
   if (parentId) {
@@ -109,13 +123,16 @@ const asyncOptimizeChunkPlugin = (): Plugin => {
     name: 'asyncOptimizeChunkPlugin',
     async moduleParsed (this, info) {
       const { id } = info
+      const sign = id.includes('node_modules') ? getPkgName(id) : id
       if (id.includes('chunkName') || id.includes('client-entry')) {
         const { importedIds, dynamicallyImportedIds } = info
         const chunkName = id.includes('client-entry') ? 'client-entry' : chunkNameRe.exec(id)![1]
         for (const importerId of importedIds) {
+          checkDependencies(id, importerId)
           recordInfo(importerId, chunkName)
         }
         for (const dyImporterId of dynamicallyImportedIds) {
+          checkDependencies(id, dyImporterId)
           recordInfo(dyImporterId, chunkName, {
             defaultChunkName: 'dynamic'
           })
@@ -123,11 +140,13 @@ const asyncOptimizeChunkPlugin = (): Plugin => {
       } else if (dependenciesMap[id]) {
         const { importedIds, dynamicallyImportedIds } = this.getModuleInfo(id)!
         for (const importerId of importedIds) {
+          checkDependencies(id, importerId)
           recordInfo(importerId, '', {
             parentId: id
           })
         }
         for (const dyImporterId of dynamicallyImportedIds) {
+          checkDependencies(id, dyImporterId)
           recordInfo(dyImporterId, '', {
             defaultChunkName: 'dynamic',
             parentId: id
