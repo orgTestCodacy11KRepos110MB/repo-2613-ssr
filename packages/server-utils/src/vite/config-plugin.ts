@@ -9,7 +9,7 @@ import { mkdir } from 'shelljs'
 import * as getPackageName from 'get-package-name'
 import { loadConfig } from '../loadConfig'
 import { getOutputPublicPath } from '../parse'
-import { getCwd, cryptoAsyncChunkName, accessFile, checkContainsRev } from '../cwd'
+import { getCwd, cryptoAsyncChunkName, accessFile } from '../cwd'
 
 const getPkgName = getPackageName.default || getPackageName
 const webpackCommentRegExp = /webpackChunkName:\s?"(.*)?"\s?\*/
@@ -20,7 +20,6 @@ const cwd = getCwd()
 const dependenciesMap: Record<string, string[]> = {}
 const asyncChunkMapJSON: Record<string, string[]> = {}
 const generateMap: Record<string, string> = {}
-const vendorMap: Record<string, string[]> = {}
 
 const chunkNamePlugin = function (): Plugin {
   return {
@@ -52,14 +51,34 @@ const chunkNamePlugin = function (): Plugin {
     }
   }
 }
-const vendorList = ['vue', 'vuex', 'vue-router', 'react', 'react-router', 'react-router-dom', 'react-dom', '@vue', 'ssr-client-utils', 'ssr-common-utils', 'pinia']
-const entryList = ['__vite-browser-external']
 
-const recordInfo = (id: string, chunkName: string, defaultChunkName?: string) => {
-  if (!dependenciesMap[id]) {
-    dependenciesMap[id] = defaultChunkName ? [defaultChunkName] : []
+const recordInfo = (id: string, chunkName: string, {
+  defaultChunkName,
+  parentId
+}: {defaultChunkName?: string, parentId?: string } = {}) => {
+  const sign = id.includes('node_modules') ? getPkgName(id) : id
+  if (!dependenciesMap[sign]) {
+    dependenciesMap[sign] = defaultChunkName ? [defaultChunkName] : []
   }
-  dependenciesMap[id].push(chunkName)
+  chunkName && dependenciesMap[sign].push(chunkName)
+  if (id.includes('node_modules')) {
+    dependenciesMap[sign].push('vendor')
+    const pkgName = sign
+    const { dependencies } = (require(require.resolve(`${pkgName}/package.json`, {
+      paths: [require.resolve(pkgName, {
+        paths: [id]
+      })]
+    })))
+    Object.keys(dependencies ?? {}).forEach(d => {
+      if (!dependenciesMap[d]) {
+        dependenciesMap[d] = []
+      }
+      dependenciesMap[d] = dependenciesMap[d].concat(dependenciesMap[pkgName])
+    })
+  }
+  if (parentId) {
+    dependenciesMap[sign] = dependenciesMap[sign].concat(dependenciesMap[parentId])
+  }
 }
 const debounce = (func: Function, wait: number) => {
   let timer: number
@@ -88,9 +107,8 @@ const moduleIds: string[] = []
 const asyncOptimizeChunkPlugin = (): Plugin => {
   return {
     name: 'asyncOptimizeChunkPlugin',
-    moduleParsed (this, info) {
+    async moduleParsed (this, info) {
       const { id } = info
-      const lastStart = id.lastIndexOf('node_modules')
       if (id.includes('chunkName') || id.includes('client-entry')) {
         const { importedIds, dynamicallyImportedIds } = info
         const chunkName = id.includes('client-entry') ? 'client-entry' : chunkNameRe.exec(id)![1]
@@ -98,31 +116,22 @@ const asyncOptimizeChunkPlugin = (): Plugin => {
           recordInfo(importerId, chunkName)
         }
         for (const dyImporterId of dynamicallyImportedIds) {
-          recordInfo(dyImporterId, chunkName, 'dynamic')
-        }
-      } else if (id.includes('node_modules') && lastStart > -1 && vendorList.includes(getPkgName(id))) {
-        const { importedIds, dynamicallyImportedIds } = info
-        const chunkName = 'common-vendor'
-        recordInfo(id, chunkName, chunkName)
-        for (const importerId of importedIds) {
-          recordInfo(importerId, chunkName)
-        }
-        for (const dyImporterId of dynamicallyImportedIds) {
-          recordInfo(dyImporterId, chunkName, 'dynamic')
+          recordInfo(dyImporterId, chunkName, {
+            defaultChunkName: 'dynamic'
+          })
         }
       } else if (dependenciesMap[id]) {
         const { importedIds, dynamicallyImportedIds } = this.getModuleInfo(id)!
         for (const importerId of importedIds) {
-          if (!dependenciesMap[importerId]) {
-            dependenciesMap[importerId] = []
-          }
-          dependenciesMap[importerId] = dependenciesMap[importerId].concat(dependenciesMap[id])
+          recordInfo(importerId, '', {
+            parentId: id
+          })
         }
         for (const dyImporterId of dynamicallyImportedIds) {
-          if (!dependenciesMap[dyImporterId]) {
-            dependenciesMap[dyImporterId] = ['dynamic']
-          }
-          dependenciesMap[dyImporterId] = dependenciesMap[dyImporterId].concat(dependenciesMap[id])
+          recordInfo(dyImporterId, '', {
+            defaultChunkName: 'dynamic',
+            parentId: id
+          })
         }
       }
     },
@@ -135,22 +144,6 @@ const asyncOptimizeChunkPlugin = (): Plugin => {
     },
     async buildEnd (err) {
       return await new Promise((resolve) => {
-        Object.entries(dependenciesMap).forEach(([fileName, dependenciesArr]) => {
-          const arr = Array.from(new Set(dependenciesArr))
-          if (fileName.includes('node_modules')) {
-            arr.push('vendor')
-            const modulename = getPkgName(fileName)
-            if (!vendorMap[modulename]) {
-              vendorMap[modulename] = arr
-            } else if (arr.length > vendorMap[modulename].length) {
-              vendorMap[modulename] = arr
-            } else if (arr.length === vendorMap[modulename].length) {
-              vendorMap[modulename] = Array.from(new Set(vendorMap[modulename].concat(arr)))
-            }
-          } else {
-            vendorMap[fileName] = arr
-          }
-        })
         if (err) {
           writeEmitter.on('buildEnd', () => {
             for (const id of moduleIds) {
@@ -196,7 +189,6 @@ const manifestPlugin = (): Plugin => {
 const writeGenerateMap = async () => {
   await promises.writeFile(resolve(getCwd(), './build/asyncChunkMap.json'), JSON.stringify(asyncChunkMapJSON, null, 2))
   await promises.writeFile(resolve(getCwd(), './build/generateMap.json'), JSON.stringify(generateMap, null, 2))
-  await promises.writeFile(resolve(getCwd(), './build/vendorMap.json'), JSON.stringify(vendorMap, null, 2))
 }
 
 const setGenerateMap = (id: string) => {
@@ -232,12 +224,8 @@ const manualChunksFn = (id: string) => {
     return chunkName === 'void' ? undefined : chunkName
   }
   if (!process.env.LEGACY_VITE) {
-    const arr = vendorMap[getPkgName(id)] || vendorMap[id]
-    if (!arr || (arr.includes('client-entry') || checkContainsRev(entryList, id))) {
-      return
-    } else if (arr.includes('common-vendor')) {
-      return 'common-vendor'
-    }
+    const sign = id.includes('node_modules') ? getPkgName(id) : id
+    const arr = Array.from(new Set(dependenciesMap[sign]))
     if (arr.length === 1) {
       return arr[0]
     } else if (arr.length >= 2) {
