@@ -145,9 +145,11 @@ export interface StyleOptions {
   rule: string
   include?: RegExp | RegExp[]
   exclude?: RegExp | RegExp[]
-  loader?: string
+  loader: string
   importLoaders: number
   isServer: boolean
+  options?: object
+  priority?: number
 }
 
 export interface IPlugin {

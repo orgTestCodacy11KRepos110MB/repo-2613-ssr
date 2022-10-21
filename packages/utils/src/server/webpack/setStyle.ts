@@ -5,7 +5,7 @@ import { loadModuleFromFramework } from '../cwd'
 const loadModule = loadModuleFromFramework
 const setStyle = (chain: Chain, reg: RegExp, options: StyleOptions) => {
   const { css } = loadConfig()
-  const { include, exclude, importLoaders, loader, isServer } = options
+  const { include, exclude, importLoaders, loader, isServer, priority } = options
   const userCssloaderOptions = css?.().loaderOptions?.cssOptions ?? {}
   const defaultCssloaderOptions = {
     importLoaders: importLoaders,
@@ -35,7 +35,30 @@ const setStyle = (chain: Chain, reg: RegExp, options: StyleOptions) => {
       }]
     ].concat(postCssPlugins)
   }, userPostcssOptions ?? {}) // 合并用户自定义 postcss options
-
+  const isPreprocess = ['css-loader', 'postcss-loader', 'less-loader', 'sass-loader'].includes(loader!)
+  console.log(loader)
+  if (!isPreprocess && !priority) {
+    throw new Error('If you are using new loader you must assign loader priority')
+  }
+  const loaderPriority = Object.assign({
+    'css-loader': {
+      priority: 1,
+      options: finalCssloaderOptions
+    },
+    'postcss-loader': {
+      priority: 2,
+      options: {
+        postcssOptions: postcssOptions
+      }
+    }
+  }, {
+    [`${options.loader}`]: {
+      priority: options.priority ?? 3
+    }
+  })
+  Object.keys(loaderPriority).sort((a, b) => loaderPriority[a].priority - loaderPriority[b].priority).forEach(item => {
+    console.log(item)
+  })
   chain.module
     .rule(options.rule)
     .test(reg)
