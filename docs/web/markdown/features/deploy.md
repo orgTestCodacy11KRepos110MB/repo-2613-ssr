@@ -1,6 +1,6 @@
 # 应用部署
 
-本篇章将会介绍在 `ssr` 框架的场景下，如何以传统 `Node.js Server` 的方式以及 `Serverless` 的形式进行部署
+本篇章将会介绍在 `ssr` 框架的场景下，如何以传统 `Node.js Server` 的方式以及 `Serverless` 的形式进行部。无论是 `midway` 还是 `nest.js` 场景底层我们都使用了 [serverless-devs](https://github.com/Serverless-Devs/Serverless-Devs) 作为基础能力。当遇到问题时，查看其文档获取更多信息。
 
 ## Serverless for Frontend
 

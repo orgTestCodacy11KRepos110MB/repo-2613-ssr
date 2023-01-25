@@ -1,0 +1,40 @@
+{
+  "statefulConfig": {
+    "serviceName": "nestjs-ssr",
+    "description": "",
+    "role": "",
+    "logConfig": {
+      "project": "",
+      "logstore": "",
+      "enableRequestMetrics": false,
+      "enableInstanceMetrics": false,
+      "logBeginRule": "None"
+    },
+    "serviceId": "419dcd93-584d-4064-806e-5f610f8e0c56",
+    "createdTime": "2023-01-25T13:02:42Z",
+    "lastModifiedTime": "2023-01-25T13:18:33Z",
+    "vpcConfig": {
+      "vpcId": "",
+      "vSwitchIds": [],
+      "securityGroupId": "",
+      "role": "",
+      "anytunnelViaENI": null
+    },
+    "internetAccess": true,
+    "nasConfig": {
+      "userId": -1,
+      "groupId": -1,
+      "mountPoints": []
+    },
+    "ossMountConfig": {
+      "mountPoints": []
+    },
+    "vendorConfig": null,
+    "tracingConfig": {
+      "type": null,
+      "params": null,
+      "jaegerConfig": null
+    },
+    "name": "nestjs-ssr"
+  }
+}

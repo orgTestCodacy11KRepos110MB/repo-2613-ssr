@@ -1,0 +1,44 @@
+{
+  "statefulConfig": {
+    "functionId": "ef52cab6-f91e-45bb-a05b-24a52c47261b",
+    "functionName": "ssr",
+    "description": "This is default function description by fc-deploy component",
+    "runtime": "nodejs14",
+    "handler": "index.handler",
+    "timeout": 30,
+    "initializer": "",
+    "initializationTimeout": 3,
+    "codeSize": 30939653,
+    "codeChecksum": "13918619169279871502",
+    "memorySize": 4096,
+    "gpuMemorySize": null,
+    "cpu": 4,
+    "diskSize": 512,
+    "environmentVariables": {
+      "NODE_ENV": "production"
+    },
+    "createdTime": "2023-01-25T13:05:35Z",
+    "lastModifiedTime": "2023-01-25T13:18:31Z",
+    "instanceConcurrency": 10,
+    "instanceSoftConcurrency": null,
+    "customContainerConfig": null,
+    "caPort": null,
+    "instanceType": "e1",
+    "layers": null,
+    "layersArnV2": null,
+    "instanceLifecycleConfig": {
+      "preFreeze": {
+        "handler": "",
+        "timeout": 3
+      },
+      "preStop": {
+        "handler": "",
+        "timeout": 3
+      }
+    },
+    "customDNS": null,
+    "customRuntimeConfig": null,
+    "customHealthCheckConfig": null,
+    "name": "ssr"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "statefulConfig": {
+    "triggerName": "httpTrigger",
+    "description": "",
+    "triggerId": "923a5bd5-9f66-4bec-b244-a8606559c8fb",
+    "sourceArn": null,
+    "triggerType": "http",
+    "invocationRole": null,
+    "qualifier": null,
+    "urlInternet": "https://ssr-nestjs-ssr-kbjotrcced.cn-shanghai.fcapp.run",
+    "urlIntranet": "https://ssr-nestjs-ssr-kbjotrcced.cn-shanghai-vpc.fcapp.run",
+    "triggerConfig": {
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "authType": "function",
+      "disableURLInternet": false
+    },
+    "createdTime": "2023-01-25T13:05:35Z",
+    "lastModifiedTime": "2023-01-25T13:18:33Z",
+    "status": null,
+    "targetArn": null,
+    "name": "httpTrigger"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "serviceName": "nestjs-ssr",
+  "functionNames": [
+    "nestjs-ssr/ssr"
+  ]
+}
